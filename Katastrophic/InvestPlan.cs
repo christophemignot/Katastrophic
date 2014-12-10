@@ -13,110 +13,95 @@
 // Ajout de TU
 // Renommage de variables/classe/fichier
 // Suppression des stream qui nécessite un appel à Dispose
+// Création de méthodes pour identifier clairement les traitements
+// Définition de InvestPlan dans un namespace
+// Création du type BestInvestment et création de la méthode GetBestInvestment
+// Découpage de la méthode GetBestInvestment
+// Reprise des conditions de la double boucle for pour supprimer le if
+//
+// ==> l'organisation des méthodes dans les classes n'est pas optimal
 
 
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 
-public class InvestPlan
+namespace Katastrophic
 {
-    public static InvestPlan Input(string input)
+    public class InvestPlan
     {
-        var result = new InvestPlan(input);
-        result.ProcessInvestment();
-        return result;
-    }
-
-    public const int MonthCount = 12;
-
-    private string output;
-    private readonly string input;
-    private readonly List<string> allowingProfits;
-
-    private InvestPlan(string input)
-    {
-        this.input = input;
-        allowingProfits = new List<string>();
-    }
-
-    private void ProcessInvestment()
-    {
-        IList<string> inputs = this.input.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-        int.Parse(inputs[0]);
-
-        for (int investmentCount = 1; investmentCount < inputs.Count; investmentCount+=2)
+        public static InvestPlan Input(string investPlans)
         {
-            ProcessSingleInvestment(inputs[investmentCount], inputs[investmentCount+1]);
+            var result = new InvestPlan(investPlans);
+            result.ProcessInvestment();
+            return result;
         }
 
-        string result = string.Empty;
-        for (int i = 0; i < allowingProfits.Count; i++)
+        public const int MonthCount = 12;
+
+        private string output;
+        private readonly string input;
+
+        private InvestPlan(string input)
         {
-            if (i > 0)
+            this.input = input;
+            this.output = string.Empty;
+        }
+
+        private void ProcessInvestment()
+        {
+            IList<string> inputs = this.input.Split(Environment.NewLine.ToCharArray(),
+                StringSplitOptions.RemoveEmptyEntries);
+
+            for (int investmentCount = 1; investmentCount < inputs.Count; investmentCount += 2)
             {
-                result += "\n";
-            }
-            result += string.Format("Case {0:d}: {1}", i + 1, allowingProfits[i]);
-        }
-        this.output = result.ToString(CultureInfo.InvariantCulture);
-    }
-
-    private void ProcessSingleInvestment(string amount, string pricesPerMonth)
-    {
-        int investAmount = int.Parse(amount);
-        List<int> prices = new List<int>();
-
-        // Max profit is set to min value for initialization purposes. 
-        int maxProfit = int.MinValue;
-        string[] strings = pricesPerMonth.Split(' ');
-        for (int i = 0; i < MonthCount; i++)
-        {
-            prices.Add(int.Parse(strings[i]));
-        }
-
-        // We use BigInteger for optimization on ARM processors 
-        int bestBuyMonth = int.MinValue;
-        int bestSellMonth = int.MinValue;
-
-        for (int buyMonth = 1; buyMonth <= MonthCount; buyMonth++)
-        {
-            for (int sellMonth = 1; sellMonth <= MonthCount; sellMonth++)
-            {
-                int profit = int.MinValue;
-                if (buyMonth < sellMonth)
-                {
-                    int sellPrice = prices[buyMonth - 1];
-                    int quantity = investAmount/sellPrice;
-                    profit = -quantity*sellPrice;
-                    int buyPrice = prices[sellMonth - 1];
-                    int rev = quantity*buyPrice;
-                    profit += rev;
-                }
-                if (profit > maxProfit)
-                {
-                    maxProfit = profit;
-                    bestBuyMonth = buyMonth;
-                    bestSellMonth = sellMonth;
-                }
+                var investAmount = int.Parse(inputs[investmentCount], NumberStyles.Integer, CultureInfo.InvariantCulture);
+                var prices = GetPrices(inputs[investmentCount + 1]);
+                var casNumero = (investmentCount + 1)/2;
+                ProcessSingleInvestment(casNumero, investAmount, prices);
             }
         }
 
-        string bestProfit;
-        if (maxProfit <= 0)
+        private static IList<int> GetPrices(string prices)
         {
-            bestProfit = "IMPOSSIBLE";
+            IList<int> pricePerMonth = new List<int>();
+            string[] pricesList = prices.Split(' ');
+            for (int i = 0; i < MonthCount; i++)
+            {
+                pricePerMonth.Add(int.Parse(pricesList[i], NumberStyles.Integer, CultureInfo.InvariantCulture));
+            }
+            return pricePerMonth;
         }
-        else
+
+        private void ProcessSingleInvestment(int casNumero, int investAmount, IList<int> prices)
         {
-            bestProfit = bestBuyMonth + " " + bestSellMonth + " " + maxProfit;
+            var bestInvestment = GetBestInvestment(investAmount, prices);
+            if (output.Length > 0)
+            {
+                output += "\n";
+            }
+            output += string.Format(CultureInfo.InvariantCulture, "Case {0:d}: {1}", casNumero, bestInvestment);
         }
-        allowingProfits.Add(bestProfit);
-    }
 
+        private static BestInvestment GetBestInvestment(int investAmount, IList<int> prices)
+        {
+            var bestInvestment = new BestInvestment();
+            for (int buyMonth = 1; buyMonth < MonthCount; buyMonth++)
+            {
+                for (int sellMonth = buyMonth + 1; sellMonth <= MonthCount; sellMonth++)
+                {
+                    int buyPrice = prices[buyMonth - 1];
+                    int sellPrice = prices[sellMonth - 1];
+                    var profit = BestInvestment.EvaluateProfit(investAmount, buyPrice, sellPrice);
+                    bestInvestment.SetBestProfit(profit, buyMonth, sellMonth);
+                }
+            }
+            return bestInvestment;
+        }
 
-    public string Output()
-    {
-        return output;
+        public string Output()
+        {
+            return output;
+        }
     }
-} 
+}

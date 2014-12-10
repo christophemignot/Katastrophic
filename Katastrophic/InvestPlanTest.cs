@@ -11,30 +11,19 @@ namespace Katastrophic
         {
             try
             {
-                var result = InvestPlan.Input(string.Empty).Output();
+                InvestPlan.Input(string.Empty).Output();
             }
-            //catch (ArgumentNullException ex)
-            //{
-            //    Assert.AreEqual("String", ex.ParamName);
-            //    Assert.IsTrue(true);
-            //}
             catch (ArgumentOutOfRangeException ex)
             {
                 Assert.AreEqual("index", ex.ParamName);
                 Assert.IsTrue(true);
             }
 
-
             try
             {
-                var result = InvestPlan.Input(null).Output();
+                InvestPlan.Input(null).Output();
             }
-            //catch (ArgumentNullException ex)
-            //{
-            //    Assert.AreEqual("s", ex.ParamName);
-            //    Assert.IsTrue(true);
-            //}
-            catch (NullReferenceException ex)
+            catch (NullReferenceException)
             {
                 Assert.IsTrue(true);
             }  
@@ -75,7 +64,7 @@ namespace Katastrophic
         }
 
         [TestMethod]
-        public void WhenMutipleInputsThenMultipleResults()
+        public void WhenMultipleInputsThenMultipleResults()
         {
             var result = InvestPlan.Input(@"0
 10
