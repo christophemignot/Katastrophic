@@ -1,12 +1,10 @@
 ﻿namespace Katastrophic
 {
-    using System;
-
     public class BestInvestment
     {
-        public int Profit { get; set; }
-        public int BuyMonth { get; set; }
-        public int SellMonth { get; set; }
+        private int Profit;
+        private int BuyMonth;
+        private int SellMonth;
 
         public void SetBestProfit(int profit, int buyMonth, int sellMonth)
         {
